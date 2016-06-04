@@ -5,7 +5,7 @@ var socketio = require('socket.io');
 var toggleDebug = require('./utils/Debug');
 var toggleRPi = require('./utils/RPi');
 toggleDebug(true);
-var wpi = toggleRPi(true);
+var wpi = toggleRPi(false);
 // express/socket.io stuff
 var app = express();
 var port = 3000;
@@ -17,7 +17,8 @@ var pins = [7, 0];
 console.log("pins " + pins + " setup");
 wpi.setup('wpi');
 
-var globalObj = { interval: 1000 };
+// bad practice, I know
+var globalObj = { intervalValue: 1000 };
 
 for(var pin of pins){
 	console.log(pin, " in OUTPUT");
@@ -60,7 +61,7 @@ function controlBothPinsAlternately(interval, pins, breakInterval){
 			wpi.digitalWrite(pins[1], isLedOn==0 ? 1 : 0);
 			console.log(pins[1] + " is " + (isLedOn==0 ? 1 : 0));
 		}
-	}, interval);
+}, interval);
 }
 
 /* There is no "pass by reference" available in JavaScript. 
@@ -99,17 +100,26 @@ io.sockets.on('connection', function(socket){
 	});
 
 	socket.on('setInterval', function(payload){
+
 		console.log(payload);
 
-		controlBothPinsAlternately(0, pins, true);
-
 		var led = payload.led;
-		var interval = payload.interval;
-
-		// alterInterval(interval);
-		controlBothPinsAlternately(interval, pins, false);
+		var intervalValue = payload.interval;
+		var isLedOn = 0;
+		var interval = setInterval(function(){
+			isLedOn = +!isLedOn;
+			wpi.digitalWrite(pins[0], isLedOn);
+			console.log(pins[0] + " is " + isLedOn);
+			wpi.digitalWrite(pins[1], isLedOn==0 ? 1 : 0);
+			console.log(pins[1] + " is " + (isLedOn==0 ? 1 : 0));
+		}, intervalValue, false);
 
 		io.emit('setIntervalArrived');
+
+		socket.on('clearInterval', function(){
+			console.log('clearInterval was called');
+			clearInterval(interval);
+		});
 	});
 
 });
