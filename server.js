@@ -5,7 +5,7 @@ var socketio = require('socket.io');
 var toggleDebug = require('./utils/Debug');
 var toggleRPi = require('./utils/RPi');
 toggleDebug(true);
-var wpi = toggleRPi(false);
+var wpi = toggleRPi(true);
 // express/socket.io stuff
 var app = express();
 var port = 3000;
@@ -30,10 +30,16 @@ function controlSinglePin(pin, status){
 	wpi.digitalWrite(pin, status ? 1 : 0)
 }
 
-function controlEveryPin(status){
-	for(var pin of pins){
-		console.log("EVERYPIN -> " + pin + ": " + status ? 1 : 0);
-		wpi.digitalWrite(pin, status ? 1 : 0);
+function controlEveryPin(status, stop){
+	stop = stop || false;
+	console.log("Stop blink: " + stop);
+	if(!stop){
+		for(var pin of pins){
+			console.log("EVERYPIN -> " + pin + ": " + status ? 1 : 0);
+			wpi.digitalWrite(pin, status ? 1 : 0);
+		}
+	} else {
+		cleanUp(pins);
 	}
 }
 
@@ -91,8 +97,8 @@ io.sockets.on('connection', function(socket){
 		    case "both":
 		    	controlEveryPin(status);
 		    	break;
-		    case "alt":
-		    	controlBothPinsAlternately(status, 1000);
+		    case "stop":
+		    	controlEveryPin(status, true);
 		    	break;
 		}
 
