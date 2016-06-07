@@ -122,6 +122,9 @@ io.sockets.on('connection', function(socket){
 		socket.on('clearInterval', function(){
 			console.log('clearInterval was called');
 			clearInterval(interval);
+			for(var pin of pins){
+				wpi.digitalWrite(pin, 0);
+			}
 			// controlEveryPin(status, true);
 		});
 	});
