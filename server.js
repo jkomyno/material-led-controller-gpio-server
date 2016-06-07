@@ -67,7 +67,7 @@ function controlBothPinsAlternately(interval, pins, breakInterval){
 			wpi.digitalWrite(pins[1], isLedOn==0 ? 1 : 0);
 			console.log(pins[1] + " is " + (isLedOn==0 ? 1 : 0));
 		}
-}, interval);
+	}, interval);
 }
 
 /* There is no "pass by reference" available in JavaScript. 
@@ -97,9 +97,6 @@ io.sockets.on('connection', function(socket){
 		    case "both":
 		    	controlEveryPin(status);
 		    	break;
-		    case "stop":
-		    	controlEveryPin(status, true);
-		    	break;
 		}
 
 		io.emit('ledControlArrived');
@@ -118,13 +115,14 @@ io.sockets.on('connection', function(socket){
 			console.log(pins[0] + " is " + isLedOn);
 			wpi.digitalWrite(pins[1], isLedOn==0 ? 1 : 0);
 			console.log(pins[1] + " is " + (isLedOn==0 ? 1 : 0));
-		}, intervalValue, false);
+		}, intervalValue);
 
 		io.emit('setIntervalArrived');
 
 		socket.on('clearInterval', function(){
 			console.log('clearInterval was called');
 			clearInterval(interval);
+			// controlEveryPin(status, true);
 		});
 	});
 
